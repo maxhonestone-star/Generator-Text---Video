@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARPAUNG Generator V3 - Frontend + Backend</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* ========== (COPY DARI VERSI SEBELUMNYA, TAPI HAPUS BAGIAN API KEY INPUT) ========== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0f0f;
+            --bg-secondary: #141b1b;
+            --bg-glass: rgba(20, 30, 30, 0.7);
+            --accent-green: #00ff9d;
+            --accent-green-dark: #00cc7a;
+            --text-primary: #e0f2e9;
+            --text-secondary: #8ba3a3;
+            --border-color: #2a3a3a;
+            --error-color: #ff5f5f;
+            --success-color: #00ff9d;
+            --glass-border: rgba(0, 255, 157, 0.2);
+            --shadow-green: 0 0 20px rgba(0, 255, 157, 0.2);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .green-aurora { /* ... sama seperti sebelumnya ... */ }
+        .grid-overlay { /* ... */ }
+        .app-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .glass-panel { /* ... */ }
+        header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .logo { display: flex; align-items: center; gap: 15px; }
+        .logo i { font-size: 2.5rem; color: var(--accent-green); filter: drop-shadow(0 0 10px var(--accent-green)); animation: bounce 2s infinite; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+        .logo h1 { font-size: 2rem; }
+        .accent { color: var(--accent-green); text-shadow: 0 0 10px var(--accent-green); }
+        .version-badge { background: rgba(0,255,157,0.1); border:1px solid var(--accent-green); border-radius:30px; padding:8px 16px; color:var(--accent-green); }
+        
+        /* ===== INFO BACKEND ===== */
+        .backend-status {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+        }
+        .backend-url {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .backend-url input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 5px 10px;
+            color: var(--text-primary);
+            width: 300px;
+        }
+        .backend-url button {
+            background: var(--accent-green);
+            border: none;
+            border-radius: 5px;
+            padding: 5px 15px;
+            color: var(--bg-primary);
+            cursor: pointer;
+        }
+        
+        .tab-container { display: flex; gap: 10px; padding: 5px; }
+        .tab-btn { flex:1; background:transparent; border:1px solid var(--border-color); border-radius:12px; padding:15px; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; }
+        .tab-btn.active { background:rgba(0,255,157,0.1); border-color:var(--accent-green); color:var(--accent-green); box-shadow:0 0 20px rgba(0,255,157,0.2); }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+        
+        .upload-area { text-align:center; padding:40px; border:2px dashed var(--border-color); border-radius:15px; cursor:pointer; min-height:250px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+        .upload-area:hover { border-color:var(--accent-green); background:rgba(0,255,157,0.05); }
+        .upload-area.dragover { border-color:var(--accent-green); background:rgba(0,255,157,0.1); transform:scale(1.02); }
+        .upload-icon { font-size:4rem; color:var(--accent-green); margin-bottom:20px; }
+        .upload-hint { color:var(--text-secondary); font-size:0.9rem; margin-top:10px; }
+        .btn-upload { background:transparent; border:1px solid var(--accent-green); border-radius:8px; padding:12px 24px; color:var(--accent-green); cursor:pointer; margin-top:20px; }
+        .btn-upload:hover { background:var(--accent-green); color:var(--bg-primary); box-shadow:0 0 20px var(--accent-green); }
+        .upload-preview { max-width:200px; max-height:200px; margin:20px auto; border-radius:10px; overflow:hidden; display:none; }
+        .upload-preview img { width:100%; height:100%; object-fit:cover; }
+        
+        .result-area { margin-top:20px; }
+        .result-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid var(--border-color); }
+        .result-header h3 i { color:var(--accent-green); margin-right:10px; }
+        .result-content { padding:20px; background:rgba(0,0,0,0.3); border-radius:12px; line-height:1.6; font-size:1.1rem; white-space:pre-wrap; }
+        .btn-copy { background:transparent; border:1px solid var(--border-color); border-radius:8px; padding:8px 16px; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:8px; }
+        .btn-copy:hover { border-color:var(--accent-green); color:var(--accent-green); }
+        
+        .dual-input { display:grid; grid-template-columns:1fr 2fr; gap:20px; }
+        .upload-area.mini { padding:20px; min-height:200px; }
+        .prompt-area { display:flex; flex-direction:column; gap:15px; }
+        textarea { width:100%; height:150px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:12px; padding:15px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:1rem; resize:none; }
+        textarea:focus { outline:none; border-color:var(--accent-green); box-shadow:0 0 20px rgba(0,255,157,0.2); }
+        .prompt-actions { display:flex; justify-content:space-between; align-items:center; }
+        .char-count { color:var(--text-secondary); font-size:0.9rem; }
+        .btn-generate { background:var(--accent-green); border:none; border-radius:8px; padding:12px 24px; color:var(--bg-primary); font-weight:600; cursor:pointer; display:flex; align-items:center; gap:10px; }
+        .btn-generate:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 0 30px var(--accent-green); }
+        .btn-generate:disabled { opacity:0.5; cursor:not-allowed; }
+        
+        .result-actions { display:flex; gap:10px; }
+        .btn-icon { background:transparent; border:1px solid var(--border-color); border-radius:8px; width:40px; height:40px; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .btn-icon:hover { border-color:var(--accent-green); color:var(--accent-green); }
+        .result-image-container { max-width:100%; max-height:500px; overflow:hidden; border-radius:12px; background:rgba(0,0,0,0.3); }
+        .result-image-container img { width:100%; height:auto; object-fit:contain; }
+        .result-footer { display:flex; justify-content:space-between; margin-top:15px; color:var(--text-secondary); font-size:0.9rem; }
+        .model-badge { background:rgba(0,255,157,0.1); border-radius:20px; padding:5px 12px; color:var(--accent-green); }
+        
+        .toast-container { position:fixed; bottom:30px; right:30px; z-index:1000; }
+        .toast { background:var(--bg-glass); backdrop-filter:blur(10px); border:1px solid var(--accent-green); border-radius:10px; padding:15px 25px; margin-top:10px; color:var(--text-primary); animation:slideIn 0.3s ease; display:flex; align-items:center; gap:10px; }
+        @keyframes slideIn { from{transform:translateX(100%); opacity:0} to{transform:translateX(0); opacity:1} }
+        
+        .loading { display:inline-block; width:20px; height:20px; border:3px solid var(--border-color); border-radius:50%; border-top-color:var(--accent-green); animation:spin 1s ease-in-out infinite; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .loading-container { display:flex; flex-direction:column; align-items:center; gap:15px; padding:30px; }
+        
+        footer { text-align:center; margin-top:40px; }
+        footer .small { font-size:0.8rem; color:var(--text-secondary); margin-top:10px; }
+        
+        @media (max-width:768px) {
+            .dual-input { grid-template-columns:1fr; }
+            .logo h1 { font-size:1.5rem; }
+            .tab-btn { padding:10px; font-size:0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="green-aurora"></div>
+    <div class="grid-overlay"></div>
+    
+    <div class="app-container">
+        <header class="glass-panel">
+            <div class="logo">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                <h1>MARPAUNG <span class="accent">Generator V3</span></h1>
+            </div>
+            <div class="version-badge">⚡ Frontend + Backend</div>
+        </header>
+
+        <!-- Backend URL Configuration (opsional, bisa di-set via localStorage) -->
+        <div class="backend-status glass-panel">
+            <div class="backend-url">
+                <i class="fas fa-server" style="color: var(--accent-green);"></i>
+                <span>Backend API URL:</span>
+                <input type="text" id="backend-url" value="https://marpaung-backend.herokuapp.com" placeholder="https://your-backend.com">
+                <button id="save-backend-url"><i class="fas fa-save"></i> Simpan</button>
+            </div>
+            <div id="backend-status-text" style="color: var(--text-secondary);">Status: <span id="backend-status">Belum dicek</span></div>
+        </div>
+        
+        <!-- Tab Navigation -->
+        <div class="tab-container glass-panel">
+            <button class="tab-btn active" data-tab="desc"><i class="fas fa-pen-fancy"></i> Deskripsi Gambar</button>
+            <button class="tab-btn" data-tab="gen"><i class="fas fa-image"></i> Generate Gambar</button>
+        </div>
+        
+        <!-- Tab Deskripsi -->
+        <div id="desc-tab" class="tab-content active">
+            <div class="upload-area glass-panel" id="desc-upload">
+                <input type="file" id="desc-file" accept="image/*" hidden>
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <h3>Upload Gambar untuk Dideskripsikan</h3>
+                <p class="upload-hint">Drag & drop, klik, atau paste (Ctrl+V)</p>
+                <div class="upload-preview" id="desc-preview"></div>
+                <button class="btn-upload" id="desc-upload-btn"><i class="fas fa-upload"></i> Pilih Gambar</button>
+            </div>
+            <div class="result-area glass-panel" id="desc-result" style="display: none;">
+                <div class="result-header">
+                    <h3><i class="fas fa-robot"></i> Hasil Deskripsi (Gemini)</h3>
+                    <button class="btn-copy" id="copy-desc"><i class="fas fa-copy"></i> Salin</button>
+                </div>
+                <div class="result-content" id="desc-text"></div>
+                <div class="result-footer">
+                    <span class="model-badge">Google Gemini 1.5 Flash</span>
+                    <span class="processing-time" id="desc-time"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Generate -->
+        <div id="gen-tab" class="tab-content">
+            <div class="dual-input glass-panel">
+                <div class="upload-area mini" id="gen-upload">
+                    <input type="file" id="gen-file" accept="image/*" hidden>
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Upload Referensi</p>
+                    <div class="upload-preview" id="gen-preview"></div>
+                </div>
+                <div class="prompt-area">
+                    <textarea id="prompt-input" placeholder="Masukkan prompt... Contoh: 'ubah menjadi lukisan cat minyak'"></textarea>
+                    <div class="prompt-actions">
+                        <span class="char-count" id="prompt-count">0/500</span>
+                        <button class="btn-generate" id="generate-btn" disabled><i class="fas fa-wand-magic"></i> Generate</button>
+                    </div>
+                </div>
+            </div>
+            <div class="result-area glass-panel" id="gen-result" style="display: none;">
+                <div class="result-header">
+                    <h3><i class="fas fa-palette"></i> Hasil Generate (Stable Diffusion 3.5)</h3>
+                    <div class="result-actions">
+                        <button class="btn-icon" id="download-gen" title="Download"><i class="fas fa-download"></i></button>
+                        <button class="btn-icon" id="preview-gen" title="Preview"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="result-image-container"><img id="gen-output" src="" alt="Generated Image"></div>
+                <div class="result-footer">
+                    <span class="model-badge">Stable Diffusion 3.5</span>
+                    <span class="processing-time" id="gen-time"></span>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="glass-panel">
+            <p>MARPAUNG Generator · Frontend + Backend Terpisah</p>
+            <p class="small">✨ API Key tersimpan aman di backend</p>
+        </footer>
+    </div>
+    
+    <div class="toast-container" id="toast"></div>
+
+    <script>
+        // MARPAUNG Frontend - Backend Integration
+        class MARPAUNGApp {
+            constructor() {
+                // Default backend URL (ganti sesuai deployment)
+                this.backendURL = localStorage.getItem('backend_url') || 'http://localhost:5000'; // contoh default
+                this.currentImage = null;
+                this.currentGenImage = null;
+                this.isProcessing = false;
+                
+                this.initElements();
+                this.initEventListeners();
+                this.initPasteHandler();
+                this.loadBackendURL();
+                this.checkBackendStatus();
+            }
+
+            initElements() {
+                // Backend URL
+                this.backendInput = document.getElementById('backend-url');
+                this.saveBackendBtn = document.getElementById('save-backend-url');
+                this.backendStatusSpan = document.getElementById('backend-status');
+                
+                // Tabs
+                this.tabBtns = document.querySelectorAll('.tab-btn');
+                this.descTab = document.getElementById('desc-tab');
+                this.genTab = document.getElementById('gen-tab');
+                
+                // Deskripsi
+                this.descUpload = document.getElementById('desc-upload');
+                this.descFile = document.getElementById('desc-file');
+                this.descUploadBtn = document.getElementById('desc-upload-btn');
+                this.descPreview = document.getElementById('desc-preview');
+                this.descResult = document.getElementById('desc-result');
+                this.descText = document.getElementById('desc-text');
+                this.copyBtn = document.getElementById('copy-desc');
+                this.descTime = document.getElementById('desc-time');
+                
+                // Generate
+                this.genUpload = document.getElementById('gen-upload');
+                this.genFile = document.getElementById('gen-file');
+                this.genPreview = document.getElementById('gen-preview');
+                this.promptInput = document.getElementById('prompt-input');
+                this.promptCount = document.getElementById('prompt-count');
+                this.generateBtn = document.getElementById('generate-btn');
+                this.genResult = document.getElementById('gen-result');
+                this.genOutput = document.getElementById('gen-output');
+                this.downloadBtn = document.getElementById('download-gen');
+                this.previewBtn = document.getElementById('preview-gen');
+                this.genTime = document.getElementById('gen-time');
+                
+                // Toast
+                this.toast = document.getElementById('toast');
+            }
+
+            loadBackendURL() {
+                this.backendInput.value = this.backendURL;
+            }
+
+            initEventListeners() {
+                // Backend URL
+                this.saveBackendBtn.addEventListener('click', () => this.saveBackendURL());
+                
+                // Tab switching
+                this.tabBtns.forEach(btn => {
+                    btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
+                });
+                
+                // Deskripsi upload
+                this.descUpload.addEventListener('click', () => this.descFile.click());
+                this.descUpload.addEventListener('dragover', (e) => this.handleDragOver(e));
+                this.descUpload.addEventListener('dragleave', () => this.handleDragLeave());
+                this.descUpload.addEventListener('drop', (e) => this.handleDrop(e, 'desc'));
+                this.descFile.addEventListener('change', (e) => this.handleFileSelect(e, 'desc'));
+                this.descUploadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.descFile.click();
+                });
+                
+                // Generate upload
+                this.genUpload.addEventListener('click', () => this.genFile.click());
+                this.genUpload.addEventListener('dragover', (e) => this.handleDragOver(e));
+                this.genUpload.addEventListener('dragleave', () => this.handleDragLeave());
+                this.genUpload.addEventListener('drop', (e) => this.handleDrop(e, 'gen'));
+                this.genFile.addEventListener('change', (e) => this.handleFileSelect(e, 'gen'));
+                
+                // Prompt
+                this.promptInput.addEventListener('input', () => this.updatePromptCount());
+                this.generateBtn.addEventListener('click', () => this.generateImage());
+                
+                // Copy & actions
+                this.copyBtn.addEventListener('click', () => this.copyDescription());
+                this.downloadBtn.addEventListener('click', () => this.downloadImage());
+                this.previewBtn.addEventListener('click', () => this.previewImage());
+            }
+
+            async saveBackendURL() {
+                const newURL = this.backendInput.value.trim();
+                if (newURL) {
+                    this.backendURL = newURL;
+                    localStorage.setItem('backend_url', newURL);
+                    this.showToast('Backend URL disimpan!', 'success');
+                    await this.checkBackendStatus();
+                }
+            }
+
+            async checkBackendStatus() {
+                try {
+                    const response = await fetch(`${this.backendURL}/api/health`, { method: 'GET', mode: 'cors' });
+                    if (response.ok) {
+                        this.backendStatusSpan.innerText = 'Online ✅';
+                        this.backendStatusSpan.style.color = 'var(--accent-green)';
+                    } else {
+                        this.backendStatusSpan.innerText = 'Error ❌';
+                        this.backendStatusSpan.style.color = 'var(--error-color)';
+                    }
+                } catch (e) {
+                    this.backendStatusSpan.innerText = 'Offline ❌';
+                    this.backendStatusSpan.style.color = 'var(--error-color)';
+                }
+            }
+
+            initPasteHandler() {
+                document.addEventListener('paste', (e) => {
+                    const items = e.clipboardData.items;
+                    for (let item of items) {
+                        if (item.type.indexOf('image') !== -1) {
+                            const file = item.getAsFile();
+                            const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+                            this.processImage(file, activeTab);
+                            this.showToast('Gambar di-paste!', 'success');
+                            break;
+                        }
+                    }
+                });
+            }
+
+            switchTab(tab) {
+                this.tabBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+                this.descTab.classList.toggle('active', tab === 'desc');
+                this.genTab.classList.toggle('active', tab === 'gen');
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                e.currentTarget.classList.add('dragover');
+            }
+            handleDragLeave() {
+                document.querySelector('.dragover')?.classList.remove('dragover');
+            }
+            handleDrop(e, type) {
+                e.preventDefault();
+                this.handleDragLeave();
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    this.processImage(file, type);
+                } else {
+                    this.showToast('File harus gambar!', 'error');
+                }
+            }
+            handleFileSelect(e, type) {
+                const file = e.target.files[0];
+                if (file) this.processImage(file, type);
+            }
+
+            processImage(file, type) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imageData = e.target.result;
+                    if (type === 'desc') {
+                        this.currentImage = imageData;
+                        this.showPreview(imageData, 'desc');
+                        this.generateDescription(imageData);
+                    } else {
+                        this.currentGenImage = imageData;
+                        this.showPreview(imageData, 'gen');
+                        this.checkGenerateButton();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+
+            showPreview(imageData, type) {
+                const preview = type === 'desc' ? this.descPreview : this.genPreview;
+                preview.innerHTML = `<img src="${imageData}" alt="Preview">`;
+                preview.style.display = 'block';
+            }
+
+            async generateDescription(imageData) {
+                if (this.isProcessing) return;
+                this.isProcessing = true;
+                this.showLoading(this.descText, 'Menganalisis gambar dengan backend...');
+                this.descResult.style.display = 'block';
+                const startTime = Date.now();
+
+                try {
+                    const base64Image = imageData.split(',')[1];
+                    const response = await fetch(`${this.backendURL}/api/describe`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: base64Image })
+                    });
+
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || 'Gagal');
+                    }
+
+                    const data = await response.json();
+                    const endTime = Date.now();
+                    this.descText.innerHTML = data.description;
+                    this.descTime.textContent = `Processing: ${((endTime - startTime)/1000).toFixed(2)}s`;
+                    this.showToast('Deskripsi berhasil!', 'success');
+                } catch (error) {
+                    this.descText.innerHTML = 'Error: ' + error.message;
+                    this.showToast(error.message, 'error');
+                } finally {
+                    this.isProcessing = false;
+                }
+            }
+
+            updatePromptCount() {
+                const count = this.promptInput.value.length;
+                this.promptCount.textContent = `${count}/500`;
+                if (count > 500) {
+                    this.promptCount.style.color = 'var(--error-color)';
+                    this.generateBtn.disabled = true;
+                } else {
+                    this.promptCount.style.color = 'var(--text-secondary)';
+                    this.checkGenerateButton();
+                }
+            }
+
+            checkGenerateButton() {
+                this.generateBtn.disabled = !this.currentGenImage || !this.promptInput.value || this.promptInput.value.length > 500 || this.isProcessing;
+            }
+
+            async generateImage() {
+                if (this.isProcessing) return;
+                this.isProcessing = true;
+                this.checkGenerateButton();
+                this.showLoading(this.genOutput, 'Generating via backend...');
+                this.genResult.style.display = 'block';
+                const startTime = Date.now();
+
+                try {
+                    const base64Image = this.currentGenImage.split(',')[1];
+                    const response = await fetch(`${this.backendURL}/api/generate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            image: base64Image,
+                            prompt: this.promptInput.value
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || 'Gagal');
+                    }
+
+                    // Backend mengembalikan URL gambar (dari Replicate) atau langsung gambar base64
+                    const data = await response.json();
+                    if (data.imageUrl) {
+                        this.genOutput.src = data.imageUrl;
+                    } else if (data.imageBase64) {
+                        this.genOutput.src = `data:image/png;base64,${data.imageBase64}`;
+                    } else {
+                        throw new Error('Format response tidak dikenal');
+                    }
+
+                    const endTime = Date.now();
+                    this.genTime.textContent = `Processing: ${((endTime - startTime)/1000).toFixed(2)}s`;
+                    this.showToast('Gambar berhasil!', 'success');
+                } catch (error) {
+                    this.genOutput.src = '';
+                    this.showToast(error.message, 'error');
+                } finally {
+                    this.isProcessing = false;
+                    this.checkGenerateButton();
+                }
+            }
+
+            copyDescription() {
+                const text = this.descText.innerText;
+                navigator.clipboard.writeText(text).then(() => this.showToast('Disalin!', 'success'));
+            }
+
+            downloadImage() {
+                if (!this.genOutput.src) return;
+                // Jika gambar dari URL eksternal
+                if (this.genOutput.src.startsWith('http')) {
+                    fetch(this.genOutput.src)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `marpaung-${Date.now()}.png`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        });
+                } else {
+                    const a = document.createElement('a');
+                    a.href = this.genOutput.src;
+                    a.download = `marpaung-${Date.now()}.png`;
+                    a.click();
+                }
+                this.showToast('Download dimulai', 'success');
+            }
+
+            previewImage() {
+                if (this.genOutput.src) window.open(this.genOutput.src, '_blank');
+            }
+
+            showLoading(element, message) {
+                if (element.tagName === 'IMG') {
+                    element.src = '';
+                    element.alt = message;
+                } else {
+                    element.innerHTML = `<div class="loading-container"><div class="loading"></div><p>${message}</p></div>`;
+                }
+            }
+
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}" style="color:var(--accent-green)"></i><span>${message}</span>`;
+                this.toast.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new MARPAUNGApp();
+        });
+    </script>
+</body>
+</html>
